@@ -15,3 +15,4 @@
 ## 已迁移笔记
 
 - [LAMMPS 运行后独立检查指南](lammps-run-check-guide.md)
+- [LAMMPS Tutorial 4：Nanosheared Electrolyte](tutorial-4.md)
