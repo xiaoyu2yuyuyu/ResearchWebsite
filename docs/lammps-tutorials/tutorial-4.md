@@ -266,13 +266,11 @@ Dangerous builds：0
 
 ## 第二部分：代码教学、易错点与理解检查
 
-### 1. 三个输入文件详解
-
-#### 1.1 `create.lmp`：建立初始体系
+### 1. `create.lmp`：建立初始体系
 
 这一阶段的任务是建立模拟盒子、上下铝墙、水分子和离子，定义相互作用参数和原子分组，然后把初始状态写入 `create.data`。它不进行真正的动力学演化。
 
-##### 1.1.1 基本体系设置
+#### 1.1 基本体系设置
 
 ```lammps
 boundary p p f
@@ -292,7 +290,7 @@ kspace_modify slab 3.0
 - `kspace_style pppm/tip4p 1.0e-5`：用 PPPM 计算截断距离以外的长程静电作用，目标相对精度为 (10^{-5})。只写短程 `pair_style` 不能完整处理离子和带电水分子的长程库仑作用。
 - `kspace_modify slab 3.0`：对 `x`、`y` 周期而 `z` 非周期的薄膜/狭缝几何进行长程静电修正，减小不同 `z` 周期镜像之间的虚假作用。
 
-##### 1.1.2 晶格、区域和空盒子
+#### 1.2 晶格、区域和空盒子
 
 ```lammps
 lattice fcc 4.04
@@ -323,7 +321,7 @@ create_box 5 box &
 region box block -12.12 12.12 -12.12 12.12 -20.20 20.20 units box
 ```
 
-##### 1.1.3 类型标签
+#### 1.3 类型标签
 
 ```lammps
 labelmap atom 1 O 2 H 3 Na+ 4 Cl- 5 WALL
@@ -333,7 +331,7 @@ labelmap angle 1 H-O-H
 
 这些命令给数字类型添加可读名称。之后可以写 `type O`、`create_atoms Na+`，而不必到处记忆数字 1、2、3。标签方便阅读，但 LAMMPS 内部仍然使用数字类型。
 
-##### 1.1.4 创建上下铝墙
+#### 1.4 创建上下铝墙
 
 ```lammps
 region rbotwall block -3 3 -3 3 -4 -3
@@ -348,7 +346,7 @@ create_atoms WALL region rwall
 - `region rwall union 2 ...` 把两个互不连接的区域合并为一个区域名称。
 - `create_atoms WALL region rwall` 按照 FCC 晶格点在这两个区域中创建 WALL 类型的铝原子。
 
-##### 1.1.5 水分子模板与水的插入【核心】【通用知识】
+#### 1.5 水分子模板与水的插入
 
 ```lammps
 region rliquid block INF INF INF INF -2 2
@@ -371,7 +369,7 @@ create_atoms 0 region rliquid mol h2omol 482793
 
 `water.mol` 不是可以不加检查地用于所有代码的“通用水模板”。只有当原子类型、部分电荷、分子几何、键角标签、SHAKE 设置和所用水模型相匹配时才能复用。
 
-##### 1.1.6 创建离子并设置电荷【核心】【教程4特定】
+#### 1.6 创建离子并设置电荷
 
 ```lammps
 create_atoms Na+ random 15 5802 rliquid overlap 0.3 maxtry 500
@@ -386,7 +384,7 @@ set type Cl- charge -1
 - 两条 `set` 命令分别赋予 (+1e) 和 (-1e) 电荷，使体系加入等量正负离子并保持总电荷中性。
 
 
-##### 1.1.7 力场参数和原子分组【核心】【通用知识】
+#### 1.7 力场参数和原子分组
 
 ```lammps
 include parameters.inc
@@ -424,7 +422,7 @@ wallbot = 位于 z < 0 的墙原子
 `top`、`bot` 区域本身也可能包含流体原子，但最终使用 `intersect wall top` 和 `intersect wall bot`，所以 `walltop`、`wallbot` 只包含墙原子。
 
 
-##### 1.1.8 按完整分子删除部分水【核心】【通用知识】
+#### 1.8 按完整分子删除部分水
 
 ```lammps
 delete_atoms random fraction 0.15 yes H2O NULL 482793 mol yes
@@ -443,7 +441,7 @@ delete_atoms random fraction 0.15 yes H2O NULL 482793 mol yes
 ```
 
 
-##### 1.1.9 初始输出和 `run 0`【核心】【通用知识】
+#### 1.9 初始输出和 `run 0`
 
 ```lammps
 dump traj all custom 1 trajectory-create.lammpstrj &
@@ -468,7 +466,7 @@ write_data create.data nocoeff
 
 ---
 
-#### 1.2 `equilibrate.lmp`：消除严重重叠并进行短时间平衡
+### 2. `equilibrate.lmp`：消除严重重叠并进行短时间平衡
 
 这一阶段先通过能量最小化降低初始构型中的强排斥和大力，再在 300 K 下运行 30000 步 NVT 分子动力学。它的输出 `equilibrate.data` 是剪切阶段的起点。
 
@@ -487,7 +485,7 @@ kspace_modify slab 3.0
 
 这是 **【重复】** 设置，含义与 create 阶段相同。每个新的 LAMMPS 输入进程都要先声明如何解释 data 文件和计算相互作用；`create.data` 并不能代替这些全局模型命令。
 
-##### 1.2.1 读取前一阶段并恢复模型【核心】【通用知识】
+#### 2.1 读取前一阶段并恢复模型
 
 ```lammps
 read_data create.data
@@ -498,7 +496,7 @@ include groups.inc
 `read_data` 读取原子、盒子、速度、电荷、键和角等体系状态，但 `create.data` 使用了 `nocoeff`，而且 data 文件不会保存 `fix`、`compute`、`dump`、分组逻辑等运行命令，因此必须重新包含参数文件和分组文件。
 
 
-##### 1.2.2 SHAKE 与能量最小化【核心】【通用知识】
+#### 2.2 SHAKE 与能量最小化
 
 ```lammps
 fix myshk H2O shake 1.0e-5 200 0 b O-H a H-O-H kbond 2000
@@ -529,7 +527,7 @@ Force max component: 1248444.9 → 43.06
 它因为达到最大力评估次数而停止，没有达到设置的 (10^{-6}) 力容差，因此不能声称“严格最小化收敛”。但是能量和力已经降低多个数量级，随后 30000 步动力学没有出现 NaN、Lost atoms 或能量爆炸，所以对教学复现来说可以继续。用于科研时则应检查延长最小化、改变算法或放宽/重新定义合理容差后的敏感性。
 
 
-##### 1.2.3 最小化轨迹与时间步重置
+#### 2.3 最小化轨迹与时间步重置
 
 ```lammps
 dump trajmin all custom 100 trajectory-equilibrate-minimize.lammpstrj ...
@@ -545,7 +543,7 @@ reset_timestep 0
 `undump trajmin` 关闭最小化轨迹，避免后面的 NVT 结果继续写进同一文件。`reset_timestep 0` 把后面的动力学阶段重新从第 0 步计数，使时间轴容易解释；它不会把坐标恢复成最小化前的状态。
 
 
-##### 1.2.4 NVT、SHAKE、重心校正和时间步长
+#### 2.4 NVT、SHAKE、重心校正和时间步长
 
 ```lammps
 fix mynvt all nvt temp 300 300 100
@@ -560,7 +558,7 @@ timestep 1.0
 - `timestep 1.0`：每个动力学时间步为 1 fs。
 
 
-##### 1.2.5 墙间距变量
+#### 2.5 墙间距变量
 
 ```lammps
 variable walltopz equal xcm(walltop,z)
@@ -572,7 +570,7 @@ variable deltaz equal v_walltopz-v_wallbotz
 - `walltopz` 和 `wallbotz` 分别是上下墙的 `z` 质心；
 - `deltaz` 是两者之差，用来监测墙间距。
 
-##### 1.2.6 平衡输出和运行时间
+#### 2.6 平衡输出和运行时间
 
 ```lammps
 dump traj all custom 250 trajectory-equilibrate.lammpstrj ...
@@ -590,13 +588,13 @@ write_data equilibrate.data nocoeff
 技术上运行成功不等于科研上充分平衡。本次温度总体围绕 300 K 波动，没有 NaN、Lost atoms 或能量爆炸，因此可以继续教学剪切；但墙间距在 30 ps 结束时仍有明显振荡和趋势，不能据此宣称已经达到科研意义上的稳态或收敛。
 
 
-#### 1.3 `shearing.lmp`：通过反向移动墙产生剪切
+### 3. `shearing.lmp`：通过反向移动墙产生剪切
 
 这一阶段读取 `equilibrate.data`，让上下墙沿 `x` 方向反向运动，同时统计水、墙和离子沿 `z` 方向的质量密度与平均 `x` 速度。本阶段已经由我亲自运行到第 200000 步，以下代码预期已与实际输出核对。
 
 文件开头的 `boundary`、`units`、`atom_style`、键角样式、TIP4P `pair_style`、PPPM 和 slab 修正均为 **【重复】** 设置，继续沿用前两个阶段的边界、单位和物理模型。剪切阶段改变的是外部驱动、恒温方式和统计方法，而不是重新换一套力场。
 
-##### 1.3.1 读取平衡状态
+#### 3.1 读取平衡状态
 
 ```lammps
 read_data equilibrate.data
@@ -607,7 +605,7 @@ include groups.inc
 剪切不能直接从随机创建的高能构型开始，因此读取短平衡后的结构和速度。`equilibrate.data` 传递体系状态，参数、分组、恒温、剪切和输出命令仍需要在当前输入文件中重新定义。
 
 
-##### 1.3.2 剪切流体和墙的恒温
+#### 3.2 剪切流体和墙的恒温
 
 ```lammps
 compute Tfluid fluid temp/partial 0 1 1
@@ -628,7 +626,7 @@ fix_modify mynvt2 temp Twall
 
 它不是“把 `x` 方向温度设为 0”，也不是“仍然观察 `x` 方向温度但不控制”。这里的温度计算本身就不包含 `v_x`。更复杂的科研模拟可能需要先扣除局部速度剖面再计算热运动温度，本教程采用排除流动方向的简化办法。
 
-##### 1.3.3 保持水几何、整体居中和时间步
+#### 3.3 保持水几何、整体居中和时间步
 
 ```lammps
 fix myshk H2O shake 1.0e-5 200 0 b O-H a H-O-H
@@ -638,7 +636,7 @@ timestep 1.0
 
 与平衡阶段相同：SHAKE 保持水的刚性几何，`recenter` 抑制整个体系沿 `z` 漂移，时间步为 1 fs。
 
-##### 1.3.4 产生剪切的关键命令
+#### 3.4 产生剪切的关键命令
 
 ```lammps
 fix mysf1 walltop setforce 0 NULL NULL
@@ -656,7 +654,7 @@ velocity walltop set 2e-4 NULL NULL
 
 
 
-##### 1.3.5 轨迹和热力学输出
+#### 3.5 轨迹和热力学输出
 
 ```lammps
 dump traj all custom 1000 trajectory-shearing.lammpstrj ...
@@ -672,7 +670,7 @@ thermo_modify temp Tfluid
 - `f_mysf1[1]`、`f_mysf2[1]` 是两个 `setforce` fix 在把 `x` 力清零前记录的墙面总 `x` 力，可用于检查上下墙切向受力，并进一步估算剪切应力。
 
 
-##### 1.3.6 沿 `z` 方向划分空间薄片
+#### 3.6 沿 `z` 方向划分空间薄片
 
 ```lammps
 compute cc1 H2O chunk/atom bin/1d z 0.0 0.25
@@ -689,7 +687,7 @@ compute cc3 ions chunk/atom bin/1d z 0.0 0.25
 `cc1`、`cc2`、`cc3` 只是三个 compute ID，可以换成其他合法名称；真正重要的是它们选择的组、方向、原点和分箱厚度。
 
 
-##### 1.3.7 对薄片进行时间平均
+#### 3.7 对薄片进行时间平均
 
 ```lammps
 fix myac1 H2O ave/chunk 10 15000 200000 &
@@ -727,7 +725,7 @@ LAMMPS 先固定输出时刻，再向前选择样本。即输出时刻为第20�
 
 当前 `ions` 把 Na 和 Cl 合并，因此 `shearing-ions.dat` 不能分别给出阳离子和阴离子分布。如果研究目标是比较 Na 和 Cl 的界面富集，需要为两个离子组分别建立 `compute chunk/atom` 和 `fix ave/chunk`，或从轨迹单独分析。
 
-##### 1.3.8 运行并保存最终状态
+#### 3.8 运行并保存最终状态
 
 ```lammps
 run 200000
