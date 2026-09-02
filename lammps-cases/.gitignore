@@ -1,0 +1,15 @@
+# LAMMPS 常见生成文件：保留在本地，不提交到 GitHub
+log.lammps
+log.*
+dump.*
+*.dump
+*.lammpstrj
+restart.*
+*.restart
+screen.*
+
+# Python 和 Jupyter 临时文件
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+

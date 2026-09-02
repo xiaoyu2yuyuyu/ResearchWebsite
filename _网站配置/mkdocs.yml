@@ -1,0 +1,35 @@
+site_name: 分子动力学科研学习笔记
+site_description: LAMMPS、论文复现与分子动力学科研学习记录
+
+docs_dir: ../docs
+site_dir: site
+
+theme:
+  name: material
+  language: zh
+  features:
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+
+plugins:
+  - search:
+      lang:
+        - zh
+        - en
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.details
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - toc:
+      permalink: true
+
