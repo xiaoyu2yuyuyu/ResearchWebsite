@@ -16,7 +16,10 @@
 3. 使用 Git 记录修改并推送到 GitHub。
 4. GitHub Pages 自动重新构建网站。
 
-当前仓库仅完成本地网站骨架，尚未连接或上传到 GitHub。
+## 当前地址
+
+- 在线网站：https://xiaoyu2yuyuyu.github.io/ResearchWebsite/
+- GitHub 仓库：https://github.com/xiaoyu2yuyuyu/ResearchWebsite
 
 ## 文件收录原则
 
@@ -34,4 +37,3 @@
 - 可重新生成的中间结果
 - 虚拟环境、缓存和临时文件
 - 密码、访问令牌和未确认可公开的资料
-
