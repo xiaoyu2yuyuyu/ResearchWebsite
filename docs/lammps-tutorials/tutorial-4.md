@@ -1,4 +1,4 @@
-# LAMMPS Tutorial 4 — Nanosheared Electrolyte
+# 004 LAMMPS Tutorial 4 — Nanosheared Electrolyte
 
 > 文档职责：Tutorial 4 的唯一案例主文档，集中保存案例事实、复现证据、代码教学、理解检查和关闭边界。  
 

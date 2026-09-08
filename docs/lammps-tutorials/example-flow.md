@@ -1,4 +1,4 @@
-# LAMMPS `flow/in.flow.pois`：二维受力 Poiseuille 流
+# 01 LAMMPS `flow/in.flow.pois`：二维受力 Poiseuille 流
 
 > 案例类型：A类官方桥接案例  
 > 当前主输入：`in.flow.pois.stable`  
@@ -17,7 +17,7 @@
 | `in.flow.pois.profile` | 第一轮恒温改进版 | 证明 `temp/profile` 能控制去偏温度，但没有形成稳态流动 |
 | `in.flow.pois.stable` | 最终稳定教学版 | 当前代码教学和结果分析的主线；通过本案例预先规定的扩展验收 |
 
-`in.flow.pois.stable` 是改进后的稳定版，位于[下载输入文件](../../lammps-cases/in.flow.pois.stable)
+`in.flow.pois.stable` 是改进后的稳定版，位于(https://github.com/xiaoyu2yuyuyu/ResearchWebsite/blob/main/lammps-cases/in.flow.pois.stable)
 
 `in.flow.pois` 是下载lammps时examples文件夹中的内容。
 
