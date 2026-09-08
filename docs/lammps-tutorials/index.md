@@ -20,5 +20,5 @@ https://github.com/lammpstutorials/lammpstutorials-inputs
 
 ## 已复现内容
 
-- [LAMMPS Tutorial 4：Nanosheared Electrolyte](tutorial-4.md)
-- [LAMMPS flow：二维受力 Poiseuille 流](example-flow.md)
+- [LAMMPS Tutorial 4：Nanosheared Electrolyte](104-tutorial4.md)
+- [LAMMPS flow：二维受力 Poiseuille 流](201-flow.md)
