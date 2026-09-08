@@ -1,0 +1,101 @@
+# Stable 2-d LJ force-driven channel flow
+
+variable        drive index 0.02
+variable        eqsteps index 20000
+variable        prodsteps index 200000
+variable        pistondamp index 2.0
+
+dimension       2
+boundary        p s p
+
+atom_style      atomic
+neighbor        0.3 bin
+neigh_modify    delay 0 every 1 check yes
+
+# Create geometry
+
+lattice         hex 0.7
+region          box block 0 20 0 10 -0.25 0.25
+create_box      3 box
+create_atoms    1 box
+
+mass            1 1.0
+mass            2 1.0
+mass            3 1.0
+
+# LJ potentials
+
+pair_style      lj/cut 1.12246
+pair_coeff      * * 1.0 1.0 1.12246
+
+# Define groups
+
+region          1 block INF INF INF 1.25 INF INF
+group           lower region 1
+region          2 block INF INF 8.75 INF INF INF
+group           upper region 2
+group           boundary union lower upper
+group           flow subtract all boundary
+
+set             group lower type 2
+set             group upper type 3
+
+# Initial velocities and temperature computes
+
+compute         mobile flow temp
+velocity        flow create 1.0 482748 temp mobile
+compute         thermal flow temp/profile 1 0 0 y 10
+
+# Integrate in 2-d and equilibrate the pressure-loaded channel
+
+fix             integrate all nve
+fix             thermostat flow temp/rescale 200 1.0 1.0 0.02 1.0
+fix_modify      thermostat temp mobile
+
+velocity        boundary set 0.0 0.0 0.0
+fix             lowerhold lower setforce 0.0 0.0 0.0
+fix             upperslide upper setforce 0.0 NULL 0.0
+fix             upperload upper aveforce 0.0 -1.0 0.0
+fix             upperdamp upper viscous ${pistondamp}
+fix             planar all enforce2d
+
+timestep        0.003
+
+variable        flowVx equal vcm(flow,x)
+variable        upperY equal xcm(upper,y)
+variable        upperVy equal vcm(upper,y)
+
+thermo_style    custom step c_mobile c_thermal v_flowVx v_upperY v_upperVy epair etotal vol
+thermo          500
+
+print           "STAGE equilibration: pressure-loaded upper wall, no x drive"
+run             ${eqsteps}
+
+# Freeze the equilibrated upper wall before measuring channel flow
+
+unfix           upperdamp
+unfix           upperload
+unfix           upperslide
+velocity        upper set 0.0 0.0 0.0
+fix             upperhold upper setforce 0.0 0.0 0.0
+
+# Use the profile-unbiased temperature only in the driven production stage
+
+unfix           thermostat
+fix             thermostat flow temp/rescale 200 1.0 1.0 0.02 1.0
+fix_modify      thermostat temp thermal
+
+reset_timestep  0
+
+fix             drive flow addforce ${drive} 0.0 0.0
+
+compute         flowbins flow chunk/atom bin/1d y lower 0.25 units box
+fix             profile flow ave/chunk 10 100 1000 flowbins vx density/number &
+                norm sample file velocity-profile-stable.dat
+
+dump            trajectory all custom 500 trajectory-flow-stable.lammpstrj &
+                id type x y xu yu vx vy
+dump_modify     trajectory sort id
+
+print           "STAGE production: fixed channel, profile-unbiased thermostat"
+run             ${prodsteps}
